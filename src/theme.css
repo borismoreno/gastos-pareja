@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+    --color-coral: #E87C73;
+    --color-mint: #B7E4C7;
+    --color-beige: #FFF5EB;
+    --color-neutral: #F5F5F5;
+
+    --font-sans: "Nunito", sans-serif;
+
+    --radius-btn: 14px;
+
+    --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.05);
+}

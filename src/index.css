@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
+@import "./theme.css";
+
+
+body {
+    margin: 0;
+    font-family: 'Nunito', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #FFF5EB;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.bounce {
+    animation: bounce 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Responsive adjustments */
+@media (min-width: 640px) {
+    .sm-container {
+        max-width: 90%;
+        margin: 0 auto;
+    }
+}
+
+@media (min-width: 768px) {
+    .md-container {
+        max-width: 75%;
+        margin: 0 auto;
+    }
+}
+
+@media (min-width: 1024px) {
+    .lg-container {
+        max-width: 60%;
+        margin: 0 auto;
+    }
+}
+
+@media (min-width: 1280px) {
+    .xl-container {
+        max-width: 50%;
+        margin: 0 auto;
+    }
+}
+
+@media (min-width: 1536px) {
+    .xxl-container {
+        max-width: 40%;
+        margin: 0 auto;
+    }
+}
+
+@layer base {
+
+    button:not([disabled]),
+    [role="button"]:not([disabled]) {
+        cursor: pointer;
+    }
+}
