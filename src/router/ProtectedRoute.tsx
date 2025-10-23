@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router'
 import { UserAuth } from '../context/AuthContext'
+import { NotificacionesProvider } from '../context/NotificacionesContext';
 
 export const ProtectedRoute = () => {
     const { session, loading } = UserAuth();
@@ -16,5 +17,9 @@ export const ProtectedRoute = () => {
         return <Navigate to='/signin' replace />;
     }
 
-    return <Outlet />;
+    return (
+        <NotificacionesProvider usuarioId={session.user.id}>
+            <Outlet />
+        </NotificacionesProvider>
+    )
 }

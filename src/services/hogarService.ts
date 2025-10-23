@@ -1,4 +1,5 @@
 import { supabase } from "../config/supabaseClient";
+import { crearNotificacion } from "./notificacionService";
 
 export interface Hogar {
     id: string
@@ -194,7 +195,8 @@ export async function regenerarCodigoInvitacion(
  */
 export async function actualizarPresupuestoHogar(
     hogar_id: string,
-    nuevoPresupuesto: number
+    nuevoPresupuesto: number,
+    usuario_id: string
 ): Promise<Hogar | null> {
     try {
         const { data, error } = await supabase
@@ -209,6 +211,30 @@ export async function actualizarPresupuestoHogar(
         if (!data) {
             console.warn('⚠️ No se encontró el hogar o no tienes permisos para actualizarlo.')
             return null
+        }
+
+
+        // Notificar a todos los miembros
+        const miembros = await obtenerUsuariosHogar(hogar_id);
+        // const { data: miembros, error: miembrosError } = await supabase
+        //     .from('usuario_hogar')
+        //     .select('user_id')
+        //     .eq('hogar_id', hogar_id)
+
+        // if (miembrosError) throw miembrosError
+        console.log(usuario_id, hogar_id, miembros);
+
+        for (const miembro of miembros) {
+            if (miembro.user_id !== usuario_id) {
+                await crearNotificacion({
+                    hogarId: hogar_id,
+                    receptorId: miembro.user_id,
+                    emisorId: usuario_id,
+                    tipo: 'presupuesto_actualizado',
+                    mensaje: `💰 El presupuesto del hogar fue actualizado a $${nuevoPresupuesto}`,
+                    metadata: { hogar_id: hogar_id },
+                })
+            }
         }
 
         return data

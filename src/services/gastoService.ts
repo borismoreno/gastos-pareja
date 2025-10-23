@@ -1,4 +1,6 @@
 import { supabase } from "../config/supabaseClient";
+import { obtenerUsuariosHogar } from "./hogarService";
+import { crearNotificacion } from "./notificacionService";
 
 // ====================
 // 🧩 Tipos
@@ -100,6 +102,7 @@ export async function crearGasto(
     categoria?: string
 ): Promise<Gasto> {
     try {
+        // 1️⃣ Crear el gasto
         const { data, error } = await supabase
             .from('gastos')
             .insert([
@@ -116,6 +119,28 @@ export async function crearGasto(
             .single<Gasto>()
 
         if (error) throw error
+        // 2️⃣ Obtener todos los miembros del hogar
+        // const { data: miembros, error: miembrosError } = await supabase
+        //     .from('usuario_hogar')
+        //     .select('user_id')
+        //     .eq('hogar_id', hogar_id)
+
+        // if (miembrosError) throw miembrosError
+        const miembros = await obtenerUsuariosHogar(hogar_id);
+
+        // 3️⃣ Crear notificaciones para cada miembro (excepto quien registró el gasto)
+        for (const miembro of miembros) {
+            if (miembro.user_id !== usuario_id) {
+                await crearNotificacion({
+                    hogarId: hogar_id,
+                    receptorId: miembro.user_id,
+                    emisorId: usuario_id,
+                    tipo: 'nuevo_gasto',
+                    mensaje: `💸 Se registró un nuevo gasto: ${descripcion} por $${monto}`,
+                    metadata: { gasto_id: data.id },
+                })
+            }
+        }
         return data
     } catch (error) {
         console.error('Error al crear gasto:', error)

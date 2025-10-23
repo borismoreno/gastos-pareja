@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router"
 import { ProgressBar } from "../components/hogar/ProgressBar"
 import { FloatingActionButton } from "../components/shared/FloatingActionButton"
-import { User as UserIcon, Bell as BellIcon } from 'lucide-react'
+import { User as UserIcon } from 'lucide-react'
 import { ExpenseCard } from "../components/hogar/ExpenseCard"
 import { BottomNav } from "../components/shared/BottomNav"
 import { useEffect, useState } from "react"
@@ -48,9 +48,6 @@ export const Home = () => {
                                 <p className="font-semibold text-gray-800">{hogar?.nombre}</p>
                             </div>
                         </div>
-                        <button className="p-2 bg-gray-100 rounded-full">
-                            <BellIcon size={20} color="#666666" />
-                        </button>
                     </div>
                     {/* Monthly Summary - Mobile */}
                     {data ? (
@@ -93,11 +90,6 @@ export const Home = () => {
                 <div className="hidden lg:block p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h1 className="text-2xl font-bold">Resumen de Gastos</h1>
-                        <div className="flex items-center space-x-4">
-                            <button className="p-2 bg-gray-100 rounded-full">
-                                <BellIcon size={20} color="#666666" />
-                            </button>
-                        </div>
                     </div>
                     {/* Monthly Summary - Desktop */}
                     {data ? (

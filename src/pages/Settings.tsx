@@ -2,7 +2,6 @@ import {
     User as UserIcon,
     Users as UsersIcon,
     DollarSign as DollarSignIcon,
-    // FileText as FileTextIcon,
     LogOut as LogOutIcon,
     ChevronRight as ChevronRightIcon,
     Pencil as PencilIcon,
@@ -58,7 +57,7 @@ export const Settings = () => {
     // Estado temporal mientras se edita
     const [tempValue, setTempValue] = useState('')
     const dispatch = useAppDispatch();
-    const { signOut } = UserAuth();
+    const { signOut, session } = UserAuth();
 
     const handleSignOut = async () => {
         await signOut();
@@ -80,8 +79,6 @@ export const Settings = () => {
         const getData = async () => {
             const result = await obtenerUsuariosHogar(hogar?.id!)
             if (result) {
-                // setUsuarios(result);
-
                 const memberItems: MemberItem[] = result.map((u) => ({
                     type: 'member',
                     icon: <UserIcon size={20} color="#666666" />,
@@ -109,17 +106,16 @@ export const Settings = () => {
                         ],
                     },
                 ])
-
-
             }
         }
         getData()
-    }, [])
+    }, [monthlyLimit])
 
     const saveChanges = async (field: string) => {
         if (field === 'monthlyLimit') {
             const formattedValue = Number(tempValue).toLocaleString()
-            const result = await actualizarPresupuestoHogar(hogar?.id!, Number(tempValue))
+            setMonthlyLimit(formattedValue)
+            const result = await actualizarPresupuestoHogar(hogar?.id!, Number(tempValue), session?.user.id!)
             if (result) {
                 showToast('¡Presupuesto actualizado correctamente!', 'success', {
                     duration: 1500,
@@ -130,47 +126,12 @@ export const Settings = () => {
                     join_code: result.join_code,
                     presupuesto: result.presupuesto_mensual!
                 }))
-                setMonthlyLimit(formattedValue)
             }
         }
 
         setEditing(null)
         setTempValue('')
     }
-
-    // Define the settings groups with proper typing
-    // const settingsGroups: SettingGroup[] = [
-    //     {
-    //         title: 'Miembros del hogar',
-    //         items: [
-    //             {
-    //                 type: 'member',
-    //                 icon: <UserIcon size={20} color="#666666" />,
-    //                 label: 'María',
-    //                 info: 'Cuenta principal',
-    //             },
-    //             {
-    //                 type: 'member',
-    //                 icon: <UserIcon size={20} color="#666666" />,
-    //                 label: 'Carlos',
-    //                 info: 'Miembro',
-    //             },
-    //         ],
-    //     },
-    //     {
-    //         title: 'Configuración',
-    //         items: [
-    //             {
-    //                 type: 'editable',
-    //                 id: 'monthlyLimit',
-    //                 icon: <DollarSignIcon size={20} color="#666666" />,
-    //                 label: 'Límite mensual',
-    //                 info: `$${monthlyLimit}`,
-    //                 editable: true,
-    //             },
-    //         ],
-    //     },
-    // ]
 
     return (
         <>
