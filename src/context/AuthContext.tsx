@@ -1,9 +1,11 @@
 import { createContext, useEffect, useState, useContext, type ReactNode } from 'react'
 import { supabase } from '../config/supabaseClient';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/supabase-js';
 
 type AuthContextType = {
     session: Session | null;
+    user: User | null
+    rol: 'admin' | 'miembro' | null;
     loading: boolean;
     signUp: (email: string, password: string, name: string) => Promise<{ success: boolean; data?: any; error?: any }>;
     signOut: () => Promise<void>;
@@ -19,7 +21,8 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
 
     const [session, setSession] = useState<Session | null>(null)
     const [loading, setLoading] = useState<boolean>(false);
-    // const [session, setSession] = useState({ session: { name: 'Boris' } })
+    const [user, setUser] = useState<User | null>(null)
+    const [rol, setRol] = useState<'admin' | 'miembro' | null>(null)
 
     const signUp = async (email: string, password: string, name: string) => {
         const { data, error } = await supabase.auth.signUp({
@@ -47,16 +50,46 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
+            setUser(session?.user ?? null)
             setLoading(false);
         })
 
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
+            setUser(session?.user ?? null)
             setLoading(false);
         })
 
         return () => listener.subscription.unsubscribe()
     }, [])
+
+    // 🔹 Obtener el rol desde la tabla usuario_hogar
+    useEffect(() => {
+        const obtenerRol = async () => {
+            if (!user) {
+                setRol(null)
+                setLoading(false)
+                return
+            }
+
+            const { data, error } = await supabase
+                .from('usuario_hogar')
+                .select('rol')
+                .eq('user_id', user.id)
+                .maybeSingle()
+
+            if (error) {
+                console.error('Error obteniendo rol:', error)
+                setRol(null)
+            } else {
+                setRol(data?.rol ?? null)
+            }
+
+            setLoading(false)
+        }
+
+        obtenerRol()
+    }, [user])
 
     const signOut = async () => {
         const { error } = await supabase.auth.signOut();
@@ -132,6 +165,8 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
 
     const contextValue: AuthContextType = {
         session,
+        user,
+        rol,
         loading,
         signIn, signUp, signOut, exchangeCodeForSession, isEmailRegistered
     }
@@ -143,7 +178,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     )
 }
 
-export const UserAuth = () => {
+export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {
         throw new Error('useMyContext must be used within a MyContextProvider');

@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from "yup";
 import { useAppDispatch } from '../../app/hooks';
-import { UserAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { unirseAHogar, type Hogar } from '../../services/hogarService';
 import { setHogar } from '../../reducers/hogarSlice';
 import { Input } from '../UI/Input';
@@ -17,7 +17,7 @@ type FormData = yup.InferType<typeof schema>;
 
 export const UnirAHogar = () => {
     const dispatch = useAppDispatch();
-    const { session } = UserAuth();
+    const { session } = useAuth();
     const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(schema),
         mode: 'onBlur',

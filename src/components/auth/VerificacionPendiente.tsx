@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router"
 import { Button } from "../UI/Button";
 import { useNavigate } from "react-router";
-import { UserAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 export const VerificacionPendiente = () => {
-    const { signUp } = UserAuth();
+    const { signUp } = useAuth();
     const location = useLocation();
     const email = location.state?.email || '';
     const navigate = useNavigate();

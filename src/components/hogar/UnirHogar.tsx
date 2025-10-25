@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { UserAuth } from "../../context/AuthContext"
+import { useAuth } from "../../context/AuthContext"
 import { obtenerHogarPorUsuario, type Hogar } from "../../services/hogarService";
 import { useNavigate } from "react-router";
 import {
@@ -16,7 +16,7 @@ import { UnirAHogar } from '../forms/UnirAHogar';
 
 export const UnirHogar = () => {
     const navigate = useNavigate();
-    const { session } = UserAuth();
+    const { session } = useAuth();
     const [selectedOption, setSelectedOption] = useState<
         'create' | 'join' | null
     >(null)

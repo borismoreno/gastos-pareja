@@ -15,7 +15,7 @@ import { useNavigate } from "react-router"
 import { Input } from '../components/UI/Input'
 import { Button } from '../components/UI/Button';
 import { crearGasto } from '../services/gastoService';
-import { UserAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useAppSelector } from '../app/hooks';
 import { useState } from 'react';
 import { showToast } from '../utils/toast';
@@ -34,7 +34,7 @@ const schema = yup.object({
 type FormData = yup.InferType<typeof schema>;
 
 export const AddExpense = () => {
-    const { session } = UserAuth();
+    const { session } = useAuth();
     const { hogar } = useAppSelector(state => state.hogar);
     const [isSaving, setIsSaving] = useState(false)
     const navigate = useNavigate()

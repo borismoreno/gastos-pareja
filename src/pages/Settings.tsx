@@ -11,7 +11,7 @@ import {
 import { useEffect, useState } from 'react'
 import { Button } from '../components/UI/Button'
 import { useAppDispatch, useAppSelector } from '../app/hooks'
-import { UserAuth } from '../context/AuthContext'
+import { useAuth } from '../context/AuthContext'
 import { removeHogar, setHogar } from '../reducers/hogarSlice'
 import { BottomNav } from '../components/shared/BottomNav'
 import { actualizarPresupuestoHogar, obtenerUsuariosHogar } from '../services/hogarService'
@@ -57,7 +57,7 @@ export const Settings = () => {
     // Estado temporal mientras se edita
     const [tempValue, setTempValue] = useState('')
     const dispatch = useAppDispatch();
-    const { signOut, session } = UserAuth();
+    const { signOut, session, rol } = useAuth();
 
     const handleSignOut = async () => {
         await signOut();
@@ -227,7 +227,7 @@ export const Settings = () => {
                                                             <span className="text-sm text-gray-500 mr-2">
                                                                 {item.info}
                                                             </span>
-                                                            <button
+                                                            {rol === 'admin' && <button
                                                                 onClick={() =>
                                                                     startEditing(
                                                                         item.id,
@@ -237,7 +237,7 @@ export const Settings = () => {
                                                                 className="bg-gray-100 p-1 rounded-full"
                                                             >
                                                                 <PencilIcon size={14} color="#666666" />
-                                                            </button>
+                                                            </button>}
                                                         </div>
                                                     ))}
                                             </div>

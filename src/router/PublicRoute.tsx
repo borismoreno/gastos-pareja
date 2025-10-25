@@ -1,14 +1,13 @@
 import { Navigate, Outlet } from 'react-router'
-import { UserAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { obtenerHogarPorUsuario } from '../services/hogarService';
 import { setHogar } from '../reducers/hogarSlice';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 
 export const PublicRoute = () => {
-    // const [hasHogar, setHasHogar] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-    const { session } = UserAuth();
+    const { session } = useAuth();
     const { hasHogar } = useAppSelector(state => state.hogar);
     const dispatch = useAppDispatch();
 

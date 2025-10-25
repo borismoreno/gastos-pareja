@@ -27,6 +27,7 @@ export interface ResumenHogar {
         monto: number
         categoria: string | null
         fecha: string
+        usuario_nombre: string | null
     }[]
 }
 
@@ -212,26 +213,31 @@ export async function obtenerResumenHogar(
         if (hogarError) throw hogarError
         const presupuesto = Number(hogarData?.presupuesto_mensual ?? 0)
 
-        // 2️⃣ Calcular total gastado en el rango
-        const { data: gastos, error: gastosError } = await supabase
-            .from('gastos')
-            .select('id, descripcion, monto, categoria, fecha')
-            .eq('hogar_id', hogar_id)
-            .gte('fecha', desde)
-            .lte('fecha', hasta)
-            .order('fecha', { ascending: false })
+        // // 2️⃣ Calcular total gastado en el rango
+        const { data: gastos, error: gastosError } = await supabase.rpc(
+            'obtener_gastos_extendidos',
+            {
+                hogar: hogar_id,
+                desde,
+                hasta,
+            }
+        )
 
         if (gastosError) throw gastosError
 
-        const gastado = Number((gastos?.reduce((acc, g) => acc + Number(g.monto), 0) ?? 0).toFixed(2))
+        const gastado = Number((gastos?.reduce((acc: number, g: { monto: any; }) => acc + Number(g.monto), 0) ?? 0).toFixed(2))
         const disponible = Number((presupuesto - gastado).toFixed(2))
 
         // 3️⃣ Tomar los 4 gastos más recientes del rango
         const ultimos_gastos = (gastos ?? [])
             .slice(0, 4)
-            .map((g) => ({
-                ...g,
+            .map((g: { id: any; descripcion: any; monto: any; categoria: any; fecha: string; usuario_nombre: string; usuario: { raw_user_meta_data: { displayName: any; }; }[]; }) => ({
+                id: g.id,
+                descripcion: g.descripcion,
+                monto: g.monto,
+                categoria: g.categoria,
                 fecha: formatearFechaAmigableIntl(g.fecha),
+                usuario_nombre: g.usuario_nombre,
             }))
 
         return {

@@ -7,14 +7,14 @@ import {
     Users as UsersIcon,
 } from 'lucide-react'
 import { useAppSelector } from '../../app/hooks';
-import { UserAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { removeHogar } from '../../reducers/hogarSlice';
 import { useAppDispatch } from '../../app/hooks';
 import { NavLink } from 'react-router';
 
 export const SideNav: React.FC = () => {
     const dispatch = useAppDispatch();
-    const { signOut } = UserAuth();
+    const { signOut } = useAuth();
     const hogar = useAppSelector(state => state.hogar.hogar);
     const handleSignOut = async () => {
         await signOut();

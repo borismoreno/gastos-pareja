@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router"
 import { useEffect, useState } from "react"
-import { UserAuth } from "../../context/AuthContext"
+import { useAuth } from "../../context/AuthContext"
 import {
     CheckCircle as CheckCircleIcon,
     UserCheck as UserCheckIcon,
@@ -9,7 +9,7 @@ import { Button } from "../UI/Button"
 
 export const Verificado = () => {
     const navigate = useNavigate();
-    const { session, exchangeCodeForSession } = UserAuth();
+    const { session, exchangeCodeForSession } = useAuth();
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {

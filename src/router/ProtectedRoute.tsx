@@ -1,9 +1,9 @@
 import { Navigate, Outlet } from 'react-router'
-import { UserAuth } from '../context/AuthContext'
+import { useAuth } from '../context/AuthContext'
 import { NotificacionesProvider } from '../context/NotificacionesContext';
 
 export const ProtectedRoute = () => {
-    const { session, loading } = UserAuth();
+    const { session, loading } = useAuth();
 
     if (loading) {
         return (

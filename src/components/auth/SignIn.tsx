@@ -12,7 +12,7 @@ import {
     Coins as CoinsIcon,
 } from 'lucide-react'
 import { useNavigate } from 'react-router'
-import { UserAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/AuthContext'
 
 const schema = yup.object({
     email: yup.string().email('Correo electrónico no válido').required('Correo electrónico es obligatorio'),
@@ -22,7 +22,7 @@ const schema = yup.object({
 type FormData = yup.InferType<typeof schema>;
 
 export const SignIn = () => {
-    const { signIn } = UserAuth();
+    const { signIn } = useAuth();
     const navigate = useNavigate();
     const [errorMessage, setErrorMessage] = useState('');
     const { register, handleSubmit, formState: { errors } } = useForm({

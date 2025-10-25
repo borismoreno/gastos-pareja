@@ -11,7 +11,7 @@ import {
     Coins as CoinsIcon,
 } from 'lucide-react'
 import { useNavigate } from 'react-router'
-import { UserAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/AuthContext'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
 
 const schema = yup.object({
@@ -23,7 +23,7 @@ const schema = yup.object({
 type FormData = yup.InferType<typeof schema>;
 
 export const SignUp = () => {
-    const { signUp } = UserAuth();
+    const { signUp } = useAuth();
     const captcha = useRef<HCaptcha>(null);
     const navigate = useNavigate();
     const [errorMessage, setErrorMessage] = useState('');

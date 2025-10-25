@@ -12,6 +12,7 @@ interface ExpenseCardProps {
         monto: number
         categoria: string | null
         fecha: string
+        usuario_nombre: string | null
     }
     onClick: () => void
 }
@@ -42,7 +43,7 @@ export const ExpenseCard = ({ expense, onClick }: ExpenseCardProps) => {
             <div className="flex-1">
                 <div className="font-medium text-gray-800">{expense.descripcion}</div>
                 <div className="text-xs text-gray-500">
-                    {expense.fecha}
+                    {expense.usuario_nombre} &middot; {expense.fecha}
                 </div>
             </div>
             <div className="text-right">
