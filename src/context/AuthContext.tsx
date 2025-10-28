@@ -1,17 +1,20 @@
 import { createContext, useEffect, useState, useContext, type ReactNode } from 'react'
 import { supabase } from '../config/supabaseClient';
 import type { Session, User } from '@supabase/supabase-js';
+import type { PerfilUsuario } from '../services/perfilUsuarioService';
 
 type AuthContextType = {
     session: Session | null;
     user: User | null
     rol: 'admin' | 'miembro' | null;
+    perfilUsuario: PerfilUsuario | null;
     loading: boolean;
     signUp: (email: string, password: string, name: string) => Promise<{ success: boolean; data?: any; error?: any }>;
     signOut: () => Promise<void>;
     signIn: (email: string, password: string) => Promise<{ success: boolean; data?: any; error?: any } | void>;
     exchangeCodeForSession: (url: string) => Promise<{ success: boolean; data?: any; error?: any } | void>;
-    isEmailRegistered: (email: string) => Promise<{ isRegistered: boolean; isVerified: boolean }>
+    isEmailRegistered: (email: string) => Promise<{ isRegistered: boolean; isVerified: boolean }>;
+    updatePerfilUsuario: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +26,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [user, setUser] = useState<User | null>(null)
     const [rol, setRol] = useState<'admin' | 'miembro' | null>(null)
+    const [perfilUsuario, setPerfilUsuario] = useState<PerfilUsuario | null>(null)
 
     const signUp = async (email: string, password: string, name: string) => {
         const { data, error } = await supabase.auth.signUp({
@@ -63,6 +67,29 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         return () => listener.subscription.unsubscribe()
     }, [])
 
+    const obtenerPerfilUsuario = async () => {
+        if (!user) {
+            setPerfilUsuario(null);
+            setLoading(false);
+            return
+        }
+
+        const { data, error } = await supabase
+            .from('perfil_usuario')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle<PerfilUsuario>()
+
+        if (error) {
+            console.error('Error obteniendo perfil usuario:', error)
+            setPerfilUsuario(null)
+        } else {
+            setPerfilUsuario(data ?? null)
+        }
+
+        setLoading(false)
+    }
+
     // 🔹 Obtener el rol desde la tabla usuario_hogar
     useEffect(() => {
         const obtenerRol = async () => {
@@ -89,7 +116,12 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         }
 
         obtenerRol()
+        obtenerPerfilUsuario()
     }, [user])
+
+    const updatePerfilUsuario = async () => {
+        await obtenerPerfilUsuario();
+    }
 
     const signOut = async () => {
         const { error } = await supabase.auth.signOut();
@@ -167,7 +199,9 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
         session,
         user,
         rol,
+        perfilUsuario,
         loading,
+        updatePerfilUsuario,
         signIn, signUp, signOut, exchangeCodeForSession, isEmailRegistered
     }
 

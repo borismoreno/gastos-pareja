@@ -7,6 +7,9 @@ import {
     Pencil as PencilIcon,
     Check as CheckIcon,
     X as XIcon,
+    Camera as CameraIcon,
+    Mail as MailIcon,
+    UserMinus as UserMinusIcon,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '../components/UI/Button'
@@ -17,6 +20,11 @@ import { BottomNav } from '../components/shared/BottomNav'
 import { actualizarPresupuestoHogar, obtenerUsuariosHogar } from '../services/hogarService'
 import { showToast } from '../utils/toast'
 import { SkeletonSettings } from '../components/skeletons/SkeletonSettings'
+import { ConfirmDialog } from '../components/shared/ConfirmDialog'
+import { actualizarPerfilUsuario } from '../services/perfilUsuarioService'
+import { StorageService } from '../services/StorageService'
+
+const storage = new StorageService('fotos')
 
 // Define interfaces for the different item types
 interface MemberItem {
@@ -50,6 +58,7 @@ interface SettingGroup {
 export const Settings = () => {
     const { hogar } = useAppSelector(state => state.hogar);
     const [monthlyLimit, setMonthlyLimit] = useState(`${hogar?.presupuesto}`)
+    const [showLeaveDialog, setShowLeaveDialog] = useState(false)
     // const [usuarios, setUsuarios] = useState<UsuarioHogar[]>([]);
     const [settingsGroups, setSettingsGroups] = useState<SettingGroup[]>()
     // Estado para controlar qué campo está siendo editado
@@ -57,7 +66,7 @@ export const Settings = () => {
     // Estado temporal mientras se edita
     const [tempValue, setTempValue] = useState('')
     const dispatch = useAppDispatch();
-    const { signOut, session, rol } = useAuth();
+    const { signOut, session, rol, perfilUsuario, user, updatePerfilUsuario } = useAuth();
 
     const handleSignOut = async () => {
         await signOut();
@@ -66,9 +75,7 @@ export const Settings = () => {
 
     const startEditing = (field: string, currentValue: string) => {
         setEditing(field)
-        setTempValue(
-            field === 'monthlyLimit' ? currentValue.replace(/,/g, '') : currentValue,
-        )
+        setTempValue(currentValue.replace(/,/g, ''))
     }
     const cancelEditing = () => {
         setEditing(null)
@@ -127,10 +134,50 @@ export const Settings = () => {
                     presupuesto: result.presupuesto_mensual!
                 }))
             }
+        } else if (field === 'userName') {
+            const result = await actualizarPerfilUsuario(user?.id!, { nombre: tempValue })
+            if (result) {
+                showToast('¡Nombre actualizado correctamente!', 'success', {
+                    duration: 1500
+                })
+            }
+            await updatePerfilUsuario();
         }
 
         setEditing(null)
         setTempValue('')
+    }
+
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+        if (!file) return
+        const publicUrl = await storage.uploadImage(file, 'perfiles')
+        if (publicUrl) {
+            const result = await actualizarPerfilUsuario(user?.id!, { nombre: perfilUsuario?.nombre, foto_url: publicUrl })
+            if (result) {
+                showToast('¡Foto de perfil actualizada correctamente!', 'success', {
+                    duration: 1500
+                })
+            }
+            await updatePerfilUsuario();
+        } else {
+            showToast('Error al actualizar la foto de perfil', 'error', {
+                duration: 1500
+            })
+        }
+        // if (file) {
+        //     const reader = new FileReader()
+        //     reader.onloadend = () => {
+        //         console.log(reader.result as string)
+        //     }
+        //     reader.readAsDataURL(file)
+        // }
+    }
+
+    const handleLeaveHousehold = () => {
+        setShowLeaveDialog(false)
+        // Aquí iría la lógica para abandonar el hogar
+        // navigate('/household-setup')
     }
 
     return (
@@ -141,6 +188,87 @@ export const Settings = () => {
                         {/* Header */}
                         <div className="bg-white p-4 lg:p-6 lg:pb-0 rounded-b-3xl lg:rounded-none shadow-sm lg:shadow-none">
                             <h1 className="text-xl lg:text-2xl font-bold mb-6">Configuración</h1>
+                            {/* My Profile Section */}
+                            <div className="mb-6">
+                                <h2 className="font-semibold mb-3">Mi perfil</h2>
+                                <div className="bg-gray-100 p-4 lg:p-6 rounded-xl">
+                                    {/* Profile Image */}
+                                    <div className="flex items-start mb-4">
+                                        <div className="relative flex-shrink-0">
+                                            <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                                                {perfilUsuario?.foto_url ? (
+                                                    <img
+                                                        src={perfilUsuario.foto_url}
+                                                        alt="Profile"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <UserIcon size={32} color="#666666" />
+                                                )}
+                                            </div>
+                                            <label className="absolute bottom-0 right-0 bg-[#E87C73] p-1.5 rounded-full cursor-pointer hover:bg-[#d86b63] transition-colors">
+                                                <CameraIcon size={14} color="#FFFFFF" />
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleImageUpload}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                        </div>
+                                        <div className="ml-3 flex-1 min-w-0">
+                                            {editing === 'userName' ? (
+                                                <div className="flex items-center gap-1">
+                                                    <input
+                                                        value={tempValue}
+                                                        onChange={(e) => setTempValue(e.target.value)}
+                                                        className="flex-1 min-w-0 px-2 py-1.5 text-sm bg-white border border-[#E87C73] rounded-lg outline-none"
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        onClick={() => saveChanges('userName')}
+                                                        className="bg-[#B7E4C7] p-1.5 rounded-full flex-shrink-0"
+                                                    >
+                                                        <CheckIcon size={14} color="#444444" />
+                                                    </button>
+                                                    <button
+                                                        onClick={cancelEditing}
+                                                        className="bg-gray-200 p-1.5 rounded-full flex-shrink-0"
+                                                    >
+                                                        <XIcon size={14} color="#444444" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="font-semibold text-lg truncate">
+                                                            {perfilUsuario?.nombre}
+                                                        </p>
+                                                        <div className="flex items-center text-sm text-gray-600 mt-1">
+                                                            <MailIcon size={14} className="mr-1 flex-shrink-0" />
+                                                            <span className="truncate">{user?.email}</span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => startEditing('userName', perfilUsuario?.nombre!)}
+                                                        className="bg-white p-2 rounded-full hover:bg-gray-50 transition-colors flex-shrink-0"
+                                                    >
+                                                        <PencilIcon size={16} color="#666666" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {/* Leave Household Button */}
+                                    <button
+                                        onClick={() => setShowLeaveDialog(true)}
+                                        className="w-full mt-4 p-3 bg-white rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors"
+                                    >
+                                        <UserMinusIcon size={18} className="mr-2" />
+                                        <span className="font-medium">Abandonar hogar</span>
+                                    </button>
+                                </div>
+                            </div>
                             {/* Couple Code */}
                             <div className="bg-gray-100 p-4 lg:p-6 rounded-xl mb-6">
                                 <div className="flex items-center mb-2">
@@ -277,6 +405,17 @@ export const Settings = () => {
             ) : (
                 <SkeletonSettings />
             )}
+            {/* Confirmation Dialog */}
+            <ConfirmDialog
+                isOpen={showLeaveDialog}
+                onClose={() => setShowLeaveDialog(false)}
+                onConfirm={handleLeaveHousehold}
+                title="¿Abandonar el hogar?"
+                message="Si abandonas el hogar, perderás acceso a todos los gastos compartidos. Esta acción no se puede deshacer."
+                confirmText="Abandonar hogar"
+                cancelText="Cancelar"
+                variant="danger"
+            />
             <BottomNav />
         </>
     )
