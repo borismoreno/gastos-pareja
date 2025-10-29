@@ -1,6 +1,7 @@
 import {
     Home as HomeIcon,
     PieChart as PieChartIcon,
+    Receipt as ReceiptIcon,
     Settings as SettingsIcon,
 } from 'lucide-react'
 import { NavLink } from 'react-router'
@@ -19,6 +20,19 @@ export const BottomNav = () => {
                         <>
                             <HomeIcon size={24} color={isActive ? '#E87C73' : '#9e9e9e'} />
                             <span className="text-xs mt-1">Inicio</span>
+                        </>
+                    )}
+                </NavLink>
+                <NavLink
+                    to="/expenses"
+                    className={({ isActive }) =>
+                        `flex flex-col items-center justify-center p-2 cursor-pointer ${isActive ? 'text-[#E87C73]' : 'text-gray-500'}`
+                    }
+                >
+                    {({ isActive }) => (
+                        <>
+                            <ReceiptIcon size={24} color={isActive ? '#E87C73' : '#9e9e9e'} />
+                            <span className="text-xs mt-1">Gastos</span>
                         </>
                     )}
                 </NavLink>

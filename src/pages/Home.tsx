@@ -149,7 +149,7 @@ export const Home = () => {
                             Gastos recientes
                         </h3>
                         <button
-                            onClick={() => navigate('/statistics')}
+                            onClick={() => navigate('/expenses')}
                             className="text-sm text-[#E87C73] font-medium"
                         >
                             Ver todos

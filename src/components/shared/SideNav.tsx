@@ -4,6 +4,7 @@ import {
     PieChart as PieChartIcon,
     Settings as SettingsIcon,
     LogOut as LogOutIcon,
+    Receipt as ReceiptIcon,
     Users as UsersIcon,
 } from 'lucide-react'
 import { useAppSelector } from '../../app/hooks';
@@ -25,6 +26,11 @@ export const SideNav: React.FC = () => {
             path: '/home',
             label: 'Inicio',
             icon: HomeIcon,
+        },
+        {
+            path: '/expenses',
+            label: 'Gastos',
+            icon: ReceiptIcon,
         },
         {
             path: '/statistics',

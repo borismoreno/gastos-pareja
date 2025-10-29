@@ -17,18 +17,22 @@ export interface Gasto {
     creado_en?: string
 }
 
+export interface GastoView {
+    id: string
+    descripcion: string
+    monto: number
+    categoria: string | null
+    fecha: string
+    fechaIso: string | null
+    dia: number | null
+    usuario_nombre: string | null
+}
+
 export interface ResumenHogar {
     presupuesto: number | null
     gastado: number
     disponible: number
-    ultimos_gastos: {
-        id: string
-        descripcion: string
-        monto: number
-        categoria: string | null
-        fecha: string
-        usuario_nombre: string | null
-    }[]
+    ultimos_gastos: GastoView[]
 }
 
 // ====================
@@ -176,18 +180,32 @@ export async function obtenerGastosPorRango(
     hogar_id: string,
     desde: string,
     hasta: string
-): Promise<Gasto[]> {
+): Promise<GastoView[]> {
     try {
-        const { data, error } = await supabase
-            .from('gastos')
-            .select('*')
-            .eq('hogar_id', hogar_id)
-            .gte('fecha', desde)
-            .lte('fecha', hasta)
-            .order('fecha', { ascending: false })
+        const { data: gastos, error: gastosError } = await supabase.rpc(
+            'obtener_gastos_extendidos',
+            {
+                hogar: hogar_id,
+                desde,
+                hasta,
+            }
+        )
 
-        if (error) throw error
-        return data ?? []
+        if (gastosError) throw gastosError
+
+        // 3️⃣ Tomar los 4 gastos más recientes del rango
+        const ultimos_gastos = (gastos ?? [])
+            .map((g: { id: any; descripcion: any; monto: any; categoria: any; fecha: string; usuario_nombre: string; usuario: { raw_user_meta_data: { displayName: any; }; }[]; }) => ({
+                id: g.id,
+                descripcion: g.descripcion,
+                monto: g.monto,
+                categoria: g.categoria,
+                fecha: formatearFechaAmigableIntl(g.fecha),
+                fechaIso: ymdInTZ(toDateSafe(g.fecha)),
+                dia: Number(ymdInTZ(toDateSafe(g.fecha)).split('-')[ymdInTZ(toDateSafe(g.fecha)).split('-').length - 1]),
+                usuario_nombre: g.usuario_nombre,
+            }))
+        return ultimos_gastos ?? []
     } catch (error) {
         console.error('Error al obtener gastos por rango:', error)
         throw error

@@ -11,6 +11,7 @@ import { Home } from '../pages/Home'
 import { Statistics } from '../pages/Statistics'
 import { Settings } from '../pages/Settings'
 import { AddExpense } from '../pages/AddExpense'
+import { Expenses } from '../pages/Expenses'
 
 export const AppRouter = () => {
     return (
@@ -22,6 +23,7 @@ export const AppRouter = () => {
                         <Route path="statistics" element={<Statistics />} />
                         <Route path="settings" element={<Settings />} />
                         <Route path="add-expense" element={<AddExpense />} />
+                        <Route path="expenses" element={<Expenses />} />
                     </Route>
                     <Route path="/unir-hogar" element={<UnirHogar />} />
                 </Route>
