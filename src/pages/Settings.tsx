@@ -21,8 +21,9 @@ import { actualizarPresupuestoHogar, obtenerUsuariosHogar } from '../services/ho
 import { showToast } from '../utils/toast'
 import { SkeletonSettings } from '../components/skeletons/SkeletonSettings'
 import { ConfirmDialog } from '../components/shared/ConfirmDialog'
-import { actualizarPerfilUsuario } from '../services/perfilUsuarioService'
+import { actualizarPerfilUsuario, obtenerPerfilUsuario } from '../services/perfilUsuarioService'
 import { StorageService } from '../services/StorageService'
+import { Spinner } from '../components/shared/Spinner'
 
 const storage = new StorageService('fotos')
 
@@ -59,6 +60,8 @@ export const Settings = () => {
     const { hogar } = useAppSelector(state => state.hogar);
     const [monthlyLimit, setMonthlyLimit] = useState(`${hogar?.presupuesto}`)
     const [showLeaveDialog, setShowLeaveDialog] = useState(false)
+    const [showSpinner, setShowSpinner] = useState(false)
+    const [spinnerMessage, setSpinnerMessage] = useState('Cargando')
     // const [usuarios, setUsuarios] = useState<UsuarioHogar[]>([]);
     const [settingsGroups, setSettingsGroups] = useState<SettingGroup[]>()
     // Estado para controlar qué campo está siendo editado
@@ -82,13 +85,26 @@ export const Settings = () => {
         setTempValue('')
     }
 
-    useEffect(() => {
-        const getData = async () => {
+    const getData = async () => {
+        setSpinnerMessage('Cargando datos')
+        try {
+
+            setShowSpinner(true)
             const result = await obtenerUsuariosHogar(hogar?.id!)
             if (result) {
                 const memberItems: MemberItem[] = result.map((u) => ({
                     type: 'member',
-                    icon: <UserIcon size={20} color="#666666" />,
+                    icon: <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden'>
+                        {(u as any).foto_url
+                            ?
+                            <img
+                                src={(u as any).foto_url}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                            />
+                            :
+                            <UserIcon size={20} color="#666666" />}
+                    </div>,
                     // usa los campos más probables y cae en un fallback si no existen
                     label: (u as any).display_name ?? (u as any).email ?? 'Usuario',
                     info: (u as any).rol === 'admin' ? 'Cuenta principal' : 'Miembro',
@@ -114,57 +130,88 @@ export const Settings = () => {
                     },
                 ])
             }
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setShowSpinner(false);
         }
+    }
+
+    useEffect(() => {
         getData()
     }, [monthlyLimit])
 
     const saveChanges = async (field: string) => {
-        if (field === 'monthlyLimit') {
-            const formattedValue = Number(tempValue).toLocaleString()
-            setMonthlyLimit(formattedValue)
-            const result = await actualizarPresupuestoHogar(hogar?.id!, Number(tempValue), session?.user.id!)
-            if (result) {
-                showToast('¡Presupuesto actualizado correctamente!', 'success', {
-                    duration: 1500,
-                })
-                dispatch(setHogar({
-                    id: result.id,
-                    nombre: result.nombre,
-                    join_code: result.join_code,
-                    presupuesto: result.presupuesto_mensual!
-                }))
+        setSpinnerMessage('Actualizando información')
+        try {
+            setShowSpinner(true);
+            if (field === 'monthlyLimit') {
+                const formattedValue = Number(tempValue).toLocaleString()
+                setMonthlyLimit(formattedValue)
+                const result = await actualizarPresupuestoHogar(hogar?.id!, Number(tempValue), session?.user.id!)
+                if (result) {
+                    showToast('¡Presupuesto actualizado correctamente!', 'success', {
+                        duration: 1500,
+                    })
+                    dispatch(setHogar({
+                        id: result.id,
+                        nombre: result.nombre,
+                        join_code: result.join_code,
+                        presupuesto: result.presupuesto_mensual!
+                    }))
+                }
+            } else if (field === 'userName') {
+                const result = await actualizarPerfilUsuario(user?.id!, { nombre: tempValue })
+                if (result) {
+                    showToast('¡Nombre actualizado correctamente!', 'success', {
+                        duration: 1500
+                    })
+                }
+                await updatePerfilUsuario();
             }
-        } else if (field === 'userName') {
-            const result = await actualizarPerfilUsuario(user?.id!, { nombre: tempValue })
-            if (result) {
-                showToast('¡Nombre actualizado correctamente!', 'success', {
-                    duration: 1500
-                })
-            }
-            await updatePerfilUsuario();
-        }
 
-        setEditing(null)
-        setTempValue('')
+            setEditing(null)
+            setTempValue('')
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setShowSpinner(false)
+        }
+        await getData()
     }
 
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]
-        if (!file) return
-        const publicUrl = await storage.uploadImage(file, 'perfiles')
-        if (publicUrl) {
-            const result = await actualizarPerfilUsuario(user?.id!, { nombre: perfilUsuario?.nombre, foto_url: publicUrl })
-            if (result) {
-                showToast('¡Foto de perfil actualizada correctamente!', 'success', {
+        setSpinnerMessage('Actualizando foto')
+        try {
+            setShowSpinner(true)
+            const file = event.target.files?.[0]
+            if (!file) return
+            const publicUrl = await storage.uploadImage(file, 'perfiles')
+            if (publicUrl) {
+                const perfil = await obtenerPerfilUsuario(user?.id!)
+                if (perfil && perfil.foto_url) {
+                    const fotoSplit = perfil.foto_url.split('/')
+                    const filePath = `${fotoSplit[fotoSplit.length - 2]}/${fotoSplit[fotoSplit.length - 1]}`
+                    await storage.deleteImage(filePath)
+                }
+                const result = await actualizarPerfilUsuario(user?.id!, { nombre: perfilUsuario?.nombre, foto_url: publicUrl })
+                if (result) {
+                    showToast('¡Foto de perfil actualizada correctamente!', 'success', {
+                        duration: 1500
+                    })
+                }
+                await updatePerfilUsuario();
+            } else {
+                showToast('Error al actualizar la foto de perfil', 'error', {
                     duration: 1500
                 })
             }
-            await updatePerfilUsuario();
-        } else {
-            showToast('Error al actualizar la foto de perfil', 'error', {
-                duration: 1500
-            })
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setShowSpinner(false)
         }
+        await getData()
         // if (file) {
         //     const reader = new FileReader()
         //     reader.onloadend = () => {
@@ -184,6 +231,9 @@ export const Settings = () => {
         <>
             {settingsGroups ? (
                 <div className="flex flex-col h-full bg-[#FFF5EB] lg:bg-white">
+                    {showSpinner && (
+                        <Spinner size='large' fullScreen text={spinnerMessage} />
+                    )}
                     <div className="flex-1 overflow-y-auto pb-20 lg:pb-6">
                         {/* Header */}
                         <div className="bg-white p-4 lg:p-6 lg:pb-0 rounded-b-3xl lg:rounded-none shadow-sm lg:shadow-none">
@@ -387,7 +437,7 @@ export const Settings = () => {
                                 </Button>
                             </div>
                             {/* Logout button - Desktop version */}
-                            <div className="hidden lg:flex mt-8 justify-center col-span-2">
+                            {/* <div className="hidden lg:flex mt-8 justify-center col-span-2">
                                 <Button
                                     onClick={handleSignOut}
                                     variant="outline"
@@ -398,7 +448,7 @@ export const Settings = () => {
                                         <span className="ml-2">Cerrar sesión</span>
                                     </div>
                                 </Button>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>

@@ -1,4 +1,5 @@
 import { supabase } from "../config/supabaseClient"
+import imageCompression from 'browser-image-compression'
 
 export class StorageService {
     private bucketName: string
@@ -20,15 +21,22 @@ export class StorageService {
                 throw new Error('El archivo debe ser una imagen')
             }
 
+            // 🔹 Comprimir imagen antes de subir
+            const compressedFile = await imageCompression(file, {
+                maxSizeMB: 1, // tamaño máximo aprox. (1 MB)
+                maxWidthOrHeight: 1280, // redimensionar si excede
+                useWebWorker: true,
+            })
+
             // Crear un nombre único para evitar colisiones
-            const fileExt = file.name.split('.').pop()
+            const fileExt = compressedFile.name.split('.').pop()
             const fileName = `${crypto.randomUUID()}.${fileExt}`
             const filePath = folder ? `${folder}/${fileName}` : fileName
 
             // Subir al bucket
             const { error: uploadError } = await supabase.storage
                 .from(this.bucketName)
-                .upload(filePath, file, {
+                .upload(filePath, compressedFile, {
                     cacheControl: '3600',
                     upsert: false, // evita sobrescribir archivos con el mismo nombre
                 })

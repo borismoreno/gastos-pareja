@@ -50,7 +50,6 @@ export async function obtenerPerfilUsuario(id: string): Promise<PerfilUsuario | 
             .maybeSingle()
 
         if (error) throw error
-        console.log('data', data);
         return data
     } catch (err) {
         console.error('Error al obtener perfil_usuario:', err)

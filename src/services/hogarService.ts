@@ -23,6 +23,7 @@ export interface UsuarioHogar {
     email: string
     display_name: string
     rol: 'admin' | 'miembro'
+    foto_url?: string;
 }
 
 function generateJoinCode(length = 6): string {
