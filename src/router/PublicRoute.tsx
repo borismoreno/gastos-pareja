@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router'
+import { Navigate, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { obtenerHogarPorUsuario } from '../services/hogarService';
@@ -6,6 +6,8 @@ import { setHogar } from '../reducers/hogarSlice';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 
 export const PublicRoute = () => {
+    const location = useLocation();
+    const currentPath = location.pathname;
     const [loading, setLoading] = useState<boolean>(true);
     const { session } = useAuth();
     const { hasHogar } = useAppSelector(state => state.hogar);
@@ -44,9 +46,11 @@ export const PublicRoute = () => {
         );
     }
 
-    if (session && hasHogar) {
+    console.log(currentPath !== '/reset-password');
+
+    if (session && hasHogar && !currentPath.includes('/reset-password')) {
         return <Navigate to='/home' replace />;
-    } else if (session && !hasHogar) {
+    } else if (session && !hasHogar && !currentPath.includes('/reset-password')) {
         return <Navigate to='/unir-hogar' replace />;
     }
     return <Outlet />;

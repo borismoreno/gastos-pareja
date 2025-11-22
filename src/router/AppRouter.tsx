@@ -12,6 +12,8 @@ import { Statistics } from '../pages/Statistics'
 import { Settings } from '../pages/Settings'
 import { AddExpense } from '../pages/AddExpense'
 import { Expenses } from '../pages/Expenses'
+import { ForgotPassword } from '../pages/ForgotPassword'
+import { ResetPassword } from '../pages/ResetPassword'
 
 export const AppRouter = () => {
     return (
@@ -32,6 +34,8 @@ export const AppRouter = () => {
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/verificacion-pendiente" element={<VerificacionPendiente />} />
                     <Route path="/verificado" element={<Verificado />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
                 </Route>
             </Routes>
         </BrowserRouter>

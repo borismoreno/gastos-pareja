@@ -104,7 +104,10 @@ export const SignIn = () => {
                     </div>
                 </form>
                 <div className="text-center mt-6">
-                    <button className="text-[#E87C73] font-medium">
+                    <button
+                        onClick={() => navigate('/forgot-password')}
+                        className="text-[#E87C73] font-medium"
+                    >
                         ¿Olvidaste tu contraseña?
                     </button>
                 </div>
@@ -239,7 +242,10 @@ export const SignIn = () => {
                             </div>
                         </form>
                         <div className="text-center mt-6">
-                            <button className="text-[#E87C73] font-medium cursor-pointer">
+                            <button
+                                onClick={() => navigate('/forgot-password')}
+                                className="text-[#E87C73] font-medium cursor-pointer"
+                            >
                                 ¿Olvidaste tu contraseña?
                             </button>
                         </div>
